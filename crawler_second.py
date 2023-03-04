@@ -17,7 +17,7 @@ def main():
         response = requests.get(
             'http://query.sse.com.cn/infodisplay/queryLatestBulletinNew.do?&jsonCallBack=jsonpCallback43752&productId=&reportType2=DQGG&reportType=YEARLY&beginDate=' + searchDate + '&endDate=' + searchDate + '&pageHelp.pageSize=25&pageHelp.pageCount=50&pageHelp.pageNo=1&pageHelp.beginPage=1&pageHelp.cacheSize=1&pageHelp.endPage=5&_=1561094157400',
             headers={'Referer': 'http://www.sse.com.cn/disclosure/listedinfo/regular/'}
-            )
+        )
         json_str = response.text[19:-1]
         data = json.loads(json_str)
         for report in data['result']:
@@ -46,5 +46,10 @@ def main():
                             print(filename, '完成下载')
 
 
+
+
 if __name__ == '__main__':
     main()
+#  公司代码 年份 词频
+# 0000001 2007 5
+# 0000001 2008 7
