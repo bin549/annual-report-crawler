@@ -30,16 +30,15 @@ def download_report_df_data_sh():
                 search_date = (re.search(r"(\d{4})", secName))
                 if search_date == None or int(search_date.group(1)) not in range(2007, 2020):
                     continue
-                filename = report['security_Code'] + secName[0:search_date.span()[0]] + search_date.group(1)+".pdf"
+                filename = report['security_Code'] + secName[0:search_date.span()[0]] + search_date.group(1) + ".pdf"
                 filename = filename.replace("关于", "")
+                filename = filename.replace("*ST", "-ST")
                 filename = filename.replace("*", "")
-                filename = filename.replace("-ST", "")
                 print("Downloading {} ....".format(filename))
                 resource = requests.get(download_url, stream=True)
                 with open("reports/" + filename, 'wb') as fd:
                     for y in resource.iter_content(102400):
                         fd.write(y)
-
 
 
 def get_pdf_address_sz(pageNum, is_finance_company=False):
@@ -75,7 +74,7 @@ def get_report_df_data_sz():
     finance_company_codes = get_finance_company_codes()
     # for i in range(301, 410):
     for i in range(41, 501):
-        # print("爬取深交所年报下载地址第{}页".format(i))
+        # print("爬取第{}页".format(i))
         result = get_pdf_address_sz(i)
         if len(result["data"]) == 0:
             break
@@ -85,8 +84,9 @@ def get_report_df_data_sz():
             secName = result['data'][index]['secName'][0]
             title = result['data'][index]['title']
             search_date = (re.search(r"(\d{4})", title))
-            if any(x in secName for x in ["银行", "证券", "保险"]) or any(x in title for x in ["（已取消）", "摘要", "（英文版）"]) or search_date == None or int(
-                search_date.group(1)) not in range(2007, 2020) or secCode in finance_company_codes:
+            if any(x in secName for x in ["银行", "证券", "保险"]) or any(
+                    x in title for x in ["（已取消）", "摘要", "（英文版）"]) or search_date == None or int(
+                    search_date.group(1)) not in range(2007, 2020) or secCode in finance_company_codes:
                 continue
             df.at[count, '具体年度'] = search_date.group(1)
             df.at[count, '证券代码'] = secCode
@@ -136,11 +136,9 @@ def main():
     download_report_df_data_sh()
 
 
-# 2007-2019 年间有过 ST 特殊处理、退市
-# 上市公司 IPO
-# 连续三年及以上
-
-
 if __name__ == '__main__':
     main()
 
+# 2007-2019 年间有过 ST 特殊处理、退市
+# 上市公司 IPO
+# 连续三年及以上

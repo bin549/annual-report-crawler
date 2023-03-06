@@ -5,8 +5,9 @@ import re
 import jieba
 import os
 import csv
-from utils.decorator import timeit
 import data
+from utils.decorator import timeit
+
 
 def format_print(company_frequent, word_frequent_dict, filename):
     if company_frequent == 0:
@@ -23,12 +24,12 @@ def format_print(company_frequent, word_frequent_dict, filename):
         print("                                 ")
 
 
-
 @timeit
 def main():
     file_root = "./reports/"
     jieba.load_userdict('userDict.txt')
-    rows = []
+    summarize_rows = []
+    single_rows = []
     header = ["公司代码", "年份", "词频"]
     for filename in sorted(os.listdir(os.path.join(file_root))):
         print("-----['{}']-----".format(filename))
@@ -52,17 +53,25 @@ def main():
         word_frequent_dict = {x: y for x, y in word_frequent_dict.items() if y != 0}
         for key_word in word_frequent_dict:
             company_frequent += word_frequent_dict[key_word]
+            single_rows.append({'公司代码': (re.search(r"(\d{6})", filename)).group(1),
+                                '年份': (re.search(r"(\d{4}).pdf", filename)).group(1),
+                                '词频': "{}-{}".format(key_word, word_frequent_dict[key_word])
+                                })
+        summarize_rows.append({'公司代码': (re.search(r"(\d{6})", filename)).group(1),
+                               '年份': (re.search(r"(\d{4}).pdf", filename)).group(1),
+                               '词频': "{}".format(company_frequent)
+                               })
         format_print(company_frequent, word_frequent_dict, filename)
-        rows.append({'公司代码': (re.search(r"(\d{6})", filename)).group(1),
-                     '年份': (re.search(r"(\d{4}).pdf", filename)).group(1),
-                     '词频': "{}".format(company_frequent)
-                     })
         print("------------------------------------")
 
-    with open('report_output.csv', 'w', encoding='UTF8', newline='') as f:
+    with open('report_output_single.csv', 'w', encoding='UTF8', newline='') as f:
         writer = csv.DictWriter(f, fieldnames=header)
         writer.writeheader()
-        writer.writerows(rows)
+        writer.writerows(single_rows)
+    with open('report_output_summarize.csv', 'w', encoding='UTF8', newline='') as f:
+        writer = csv.DictWriter(f, fieldnames=header)
+        writer.writeheader()
+        writer.writerows(summarize_rows)
 
 
 if __name__ == '__main__':

@@ -1,3 +1,0 @@
-import jieba
-
-word = ""
