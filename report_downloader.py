@@ -131,9 +131,9 @@ def get_finance_company_codes():
 
 
 def main():
-    # df_sz = get_report_df_data_sz()
-    # download_report_pdf_sz(df_sz)
-    # download_report_df_data_sh()
+    df_sz = get_report_df_data_sz()
+    download_report_pdf_sz(df_sz)
+    download_report_df_data_sh()
 
 
 # 2007-2019 年间有过 ST 特殊处理、退市
