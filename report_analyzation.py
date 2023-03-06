@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*- 
+
 import PyPDF2
 import re
 import jieba
@@ -89,26 +91,24 @@ word_dat = {
 
 def main():
     file_root = "./reports/"
-    jieba.load_userdict('wordWeight.txt')
-    for x, y in word_dat.items():
+    jieba.load_userdict('userDict.txt')
+    for filename in sorted(os.listdir(os.path.join(file_root))):
         print("----------------")
-        for key_word in y:
-            print("----------------")
-            print(key_word)
-            print("--------")
-            print(" {} {} {}".format("公司代码", "年份", "词频"))
-            for filename in sorted(os.listdir(os.path.join(file_root))):
-                name, ext = os.path.splitext(filename)
-                if ext != ".pdf":
-                    continue
-                f = open(file_root + filename, 'rb')
-                pdf_reader = PyPDF2.PdfReader(f)
+        print(" {} {} {}".format("公司代码", "年份", "词频"))
+        name, ext = os.path.splitext(filename)
+        if ext != ".pdf":
+            continue
+        f = open(file_root + filename, 'rb')
+        pdf_reader = PyPDF2.PdfReader(f)
+        for x, y in word_dat.items():
+            for key_word in y:
                 word_frequent = 0
                 for i in range(0, len(pdf_reader.pages)):
                     text = pdf_reader.pages[i].extract_text()
                     word_frequent += list(jieba.cut(text, cut_all=False, HMM=True)).count(key_word)
-                print("  {}  {}  {}".format((re.search(r"(\d{6})", filename)).group(1),
-                                            (re.search(r"(\d{4}).pdf", filename)).group(1), word_frequent))
+                if word_frequent != 0:
+                    print("  {}  {}  {}-{}".format((re.search(r"(\d{6})", filename)).group(1), (re.search(r"(\d{4}).pdf", filename)).group(1), key_word, word_frequent))
+
         # print(jieba.lcut(page_one_text))
         # print('|'.join(jieba.cut(page_one_text, cut_all=False, HMM=True)))
 
