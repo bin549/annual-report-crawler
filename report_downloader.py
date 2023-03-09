@@ -11,34 +11,38 @@ import datetime
 
 
 def download_report_df_data_sh():
+    file_path = "E:/p/reports2"
     is_financial_keys = ["银行", "证券", "商行", "保险", "金控", "期货", "资本", "财富", "金科"]
-    begin = datetime.date(2007, 9, 19)
+    begin = datetime.date(2020, 1, 19)
     end = datetime.date(2020, 6, 21)
     df = pd.DataFrame(columns=['证券代码', '简称', '文件路径', '年表标题'])
     for i in range((end - begin).days + 1):
-        searchDate = str(begin + datetime.timedelta(days=i))
-        response = requests.get(
-            'http://query.sse.com.cn/infodisplay/queryLatestBulletinNew.do?&jsonCallBack=jsonpCallback43752&productId=&reportType2=DQGG&reportType=YEARLY&beginDate=' + searchDate + '&endDate=' + searchDate + '&pageHelp.pageSize=25&pageHelp.pageCount=50&pageHelp.pageNo=1&pageHelp.beginPage=1&pageHelp.cacheSize=1&pageHelp.endPage=5&_=1561094157400',
-            headers={'Referer': 'http://www.sse.com.cn/disclosure/listedinfo/regular/'}
-        )
-        for report in json.loads(response.text[19:-1])['result']:
-            download_url = 'http://www.sse.com.cn/' + report['URL']
-            secName = report['title']
-            if re.search('年度报告', secName, re.S):
-                if any(x in secName for x in is_financial_keys) or any(x in secName for x in ["摘要"]):
-                    continue
-                search_date = (re.search(r"(\d{4})", secName))
-                if search_date == None or int(search_date.group(1)) not in range(2007, 2020):
-                    continue
-                filename = report['security_Code'] + secName[0:search_date.span()[0]] + search_date.group(1) + ".pdf"
-                filename = filename.replace("关于", "")
-                filename = filename.replace("*ST", "-ST")
-                filename = filename.replace("*", "")
-                print("Downloading {} ....".format(filename))
-                resource = requests.get(download_url, stream=True)
-                with open("reports/" + filename, 'wb') as fd:
-                    for y in resource.iter_content(102400):
-                        fd.write(y)
+        try:
+            searchDate = str(begin + datetime.timedelta(days=i))
+            response = requests.get(
+                'http://query.sse.com.cn/infodisplay/queryLatestBulletinNew.do?&jsonCallBack=jsonpCallback43752&productId=&reportType2=DQGG&reportType=YEARLY&beginDate=' + searchDate + '&endDate=' + searchDate + '&pageHelp.pageSize=25&pageHelp.pageCount=50&pageHelp.pageNo=1&pageHelp.beginPage=1&pageHelp.cacheSize=1&pageHelp.endPage=5&_=1561094157400',
+                headers={'Referer': 'http://www.sse.com.cn/disclosure/listedinfo/regular/'}
+            )
+            for report in json.loads(response.text[19:-1])['result']:
+                download_url = 'http://www.sse.com.cn/' + report['URL']
+                secName = report['title']
+                if re.search('年度报告', secName, re.S):
+                    if any(x in secName for x in is_financial_keys) or any(x in secName for x in ["摘要"]):
+                        continue
+                    search_date = (re.search(r"(\d{4})", secName))
+                    if search_date == None or int(search_date.group(1)) not in range(2007, 2020):
+                        continue
+                    filename = report['security_Code'] + secName[0:search_date.span()[0]] + search_date.group(1) + ".pdf"
+                    filename = filename.replace("关于", "")
+                    filename = filename.replace("*ST", "-ST")
+                    filename = filename.replace("*", "")
+                    print("Downloading {} ....".format(filename))
+                    resource = requests.get(download_url, stream=True)
+                    with open(os.path.join(file_path, filename), "wb") as fd:
+                        for y in resource.iter_content(102400):
+                            fd.write(y)
+        except Exception as e:
+            continue
 
 
 def get_pdf_address_sz(pageNum, is_finance_company=False):
@@ -59,7 +63,7 @@ def get_pdf_address_sz(pageNum, is_finance_company=False):
     pagenum = int(pageNum)
     payload = {"seDate": ["2007-03-01", "2020-12-04"], "channelCode": ["fixed_disc"], "bigCategoryId": ["010301"],
                "pageSize": 30,
-               "pageNum": pagenum, "sortSecCode": "desc"}
+               "pageNum": pagenum, "sortSecCode": "asc"}
     if is_finance_company:
         payload["bigIndustryCode"] = ["J"]
     response = requests.post(url, headers=headers, data=json.dumps(payload))
@@ -72,9 +76,9 @@ def get_report_df_data_sz():
     count = 0
     url_head = 'http://disc.static.szse.cn/download/'
     finance_company_codes = get_finance_company_codes()
-    # for i in range(301, 410):
-    for i in range(41, 501):
-        # print("爬取第{}页".format(i))
+    for i in range(300, 301):
+    # for i in range(115, 501):
+        print("爬取第{}页".format(i))
         result = get_pdf_address_sz(i)
         if len(result["data"]) == 0:
             break
@@ -99,7 +103,7 @@ def get_report_df_data_sz():
 
 
 def download_report_pdf_sz(df):
-    file_path = "reports"
+    file_path = "E:/p/reports"
     headers = {
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)AppleWebKit/537.36 (KHTML, like Gecko) Chrome/74.0.3729.169 Safari/537.36'
     }
@@ -131,8 +135,8 @@ def get_finance_company_codes():
 
 
 def main():
-    df_sz = get_report_df_data_sz()
-    download_report_pdf_sz(df_sz)
+    # df_sz = get_report_df_data_sz()
+    # download_report_pdf_sz(df_sz)
     download_report_df_data_sh()
 
 

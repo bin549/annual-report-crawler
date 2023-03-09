@@ -38,14 +38,22 @@ def main():
         if ext != ".pdf":
             continue
         f = open(file_root + filename, 'rb')
-        pdf_reader = PyPDF2.PdfReader(f)
+        try:
+            pdf_reader = PyPDF2.PdfReader(f)
+        except Exception as e:
+            print("pdf file error")
+            continue
         word_frequent_dict = {}
         for x, y in data.WORD_DIC.items():
             for key_word in y:
                 word_frequent_dict[key_word] = 0
         pdf_page_size = 40 if len(pdf_reader.pages) > 40 else len(pdf_reader.pages)
         for i in range(0, pdf_page_size):
-            text = pdf_reader.pages[i].extract_text()
+            try:
+                text = pdf_reader.pages[i].extract_text()
+            except Exception as e:
+                print("pdf file error")
+                continue
             for word_key in word_frequent_dict.keys():
                 word_frequent = list(jieba.cut(text, cut_all=False, HMM=True)).count(word_key)
                 if word_frequent != 0:
@@ -63,6 +71,7 @@ def main():
                                })
         format_print(company_frequent, word_frequent_dict, filename)
         print("------------------------------------")
+
 
     with open('report_output_single.csv', 'w', encoding='UTF8', newline='') as f:
         writer = csv.DictWriter(f, fieldnames=header)
